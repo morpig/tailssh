@@ -272,9 +272,18 @@ function activateTab(id) {
     t.tabEl.classList.toggle("active", t.id === id);
     t.paneEl.classList.toggle("active", t.id === id);
   }
-  // scroll the active tab into view in the tab bar
+  // Scroll the active tab into view in the tab bar
   const tab = getTab(id);
-  if (tab) tab.tabEl.scrollIntoView({ block: "nearest", inline: "nearest" });
+  if (!tab) return;
+  tab.tabEl.scrollIntoView({ block: "nearest", inline: "nearest" });
+  // If the tab has a live SSH session, focus the terminal so the user can
+  // type immediately without having to click into it first.
+  if (tab.session) {
+    // xterm.js renders a hidden textarea as its keyboard input target.
+    // Focusing it is equivalent to calling Terminal#focus().
+    const input = tab.paneEl.querySelector(".xterm-helper-textarea");
+    if (input) input.focus();
+  }
 }
 
 function setTabLabel(id, label) {
@@ -634,7 +643,12 @@ async function openSession(tab, device, addr, displayName, ipn) {
     ipn,
     {
       onConnectionProgress(msg) { console.log(`[ssh:${label}] progress:`, msg); },
-      onConnected()             { console.log(`[ssh:${label}] connected`); },
+      onConnected() {
+        console.log(`[ssh:${label}] connected`);
+        // Focus the terminal as soon as the connection is up
+        const input = tab.paneEl.querySelector(".xterm-helper-textarea");
+        if (input) input.focus();
+      },
       onError(err) {
         console.error(`[ssh:${label}] error:`, err);
         if (!closed) onSessionEnd(tab, ipn);
