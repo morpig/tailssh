@@ -1,25 +1,12 @@
 # TailSSH
 
-A browser-based SSH terminal. Runs a Tailscale node directly in the browser via
-WebAssembly (`@tailscale/connect`), then opens SSH sessions to machines on your
-tailnet using xterm.js. Hosted on Cloudflare Workers — no server, no SSH proxy.
+A 100% browser-based SSH terminal to Tailscale machines using Tailscale's WASM, deployed with Cloudflare Workers.
 
 > **This is internal-use software.**
 > There is no authentication layer in front of the app itself. Whoever can reach
 > the deployed URL can attempt to start a Tailscale session under your tailnet.
 > **Do not deploy to a public domain without adding access controls** (e.g.
 > Cloudflare Access, IP allowlisting, or keeping the Worker route private).
-
----
-
-## Prerequisites
-
-| Requirement | Notes |
-|---|---|
-| Node.js 18+ | For running `wrangler` and `build.js` |
-| A Cloudflare account | Free tier is fine |
-| A Tailscale account | <https://tailscale.com> |
-| Tailscale SSH enabled | See [Enable Tailscale SSH](#enable-tailscale-ssh) below |
 
 ---
 
@@ -154,7 +141,7 @@ up to 50 users) before sharing the URL with anyone.
 
 ```
 tailssh/
-├── build.js            # Copies WASM assets from node_modules into public/
+├── build.js            # Asset vendor script — see below
 ├── package.json
 ├── wrangler.jsonc      # Cloudflare Workers config
 ├── .dev.vars           # Local secrets — gitignored
@@ -168,6 +155,26 @@ tailssh/
     ├── main.wasm       # Tailscale WASM binary (build output)
     └── pkg.css         # xterm.js base styles (build output)
 ```
+
+### build.js
+
+There is no Webpack/Vite/esbuild in this project. `build.js` is a plain Node
+ESM script that copies three files out of `node_modules/@tailscale/connect` into
+`public/`:
+
+| File | What it is |
+|---|---|
+| `pkg.js` | Self-contained ESM bundle — includes xterm.js, FitAddon, WebLinksAddon, the `wasm_exec` shim, and the `createIPN` / `runSSHSession` exports. |
+| `main.wasm` | The Go WASM binary (~32 MB). Kept as a separate file so the browser can use `WebAssembly.instantiateStreaming()` — inlining it into JS would break streaming compilation and exceed size limits. |
+| `pkg.css` | xterm.js base stylesheet shipped by `@tailscale/connect`. |
+
+`pkg.js` is already a self-contained bundle; re-bundling it through a tool like
+esbuild would break its internal relative path resolution for `main.wasm`. The
+build step is intentionally just a file copy.
+
+`npm run build` (and therefore `npm run dev` / `npm run deploy`) runs `build.js`
+automatically. You only need to re-run it manually if you update the
+`@tailscale/connect` package.
 
 ---
 
