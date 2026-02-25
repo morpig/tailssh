@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TailSSH — Browser SSH via Tailscale</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="pkg.css" />
+  </head>
+  <body>
+    <!-- ─── Header ───────────────────────────────────────────────────────── -->
+    <header id="header">
+      <span id="logo">TailSSH</span>
+      <span id="ts-status" class="status-badge status-connecting">
+        <span class="dot"></span>
+        <span id="ts-status-text">Initializing…</span>
+      </span>
+      <div id="header-spacer"></div>
+      <button id="logout-btn" class="header-btn" title="Logout from Tailscale" hidden>Logout</button>
+    </header>
+
+    <!-- ─── Auth overlay ─────────────────────────────────────────────────── -->
+    <div id="auth-overlay" class="overlay hidden">
+      <div class="overlay-box">
+        <h2>Tailscale Login Required</h2>
+        <p>
+          A new tab will open for Tailscale authentication.
+          Once you have logged in, return to this tab — the terminal will
+          connect automatically.
+        </p>
+        <button id="auth-open-btn">Open Tailscale Login</button>
+        <p class="hint" id="auth-url-hint" aria-live="assertive" aria-atomic="true"></p>
+      </div>
+    </div>
+
+    <!-- ─── Loading overlay ──────────────────────────────────────────────── -->
+    <div id="loading-overlay" class="overlay">
+      <div class="overlay-box">
+        <div class="spinner"></div>
+        <p id="loading-text">Loading Tailscale WASM…</p>
+      </div>
+    </div>
+
+    <!-- ─── Tab bar ──────────────────────────────────────────────────────── -->
+    <div id="tab-bar">
+      <div id="tab-list">
+        <!-- tab buttons injected by app.js -->
+      </div>
+      <button id="new-tab-btn" title="New tab">+</button>
+    </div>
+
+    <!-- ─── Pane host ────────────────────────────────────────────────────── -->
+    <!--
+      Each tab gets one child <div class="pane"> inside here.
+      Only the active pane is visible; others have display:none.
+    -->
+    <div id="pane-host"></div>
+
+    <!-- ─── Username modal ───────────────────────────────────────────────── -->
+    <div id="username-modal" class="overlay hidden" role="dialog" aria-modal="true"
+         aria-labelledby="username-modal-title">
+      <div class="overlay-box modal-box">
+        <h2 id="username-modal-title">SSH Connection</h2>
+        <p id="username-modal-desc" class="modal-desc"></p>
+        <label class="modal-label" for="username-input">Username</label>
+        <input id="username-input" class="modal-input" type="text"
+               placeholder="e.g. root" autocomplete="username" spellcheck="false" />
+        <div class="modal-actions">
+          <button id="username-cancel-btn" class="btn-secondary">Cancel</button>
+          <button id="username-connect-btn" class="btn-primary">Connect</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+    <noscript>
+      <style>
+        body { display:flex; align-items:center; justify-content:center;
+               height:100vh; font-family:sans-serif; color:#f2f2f7; background:#1c1c1e; }
+      </style>
+      <p>TailSSH requires JavaScript and WebAssembly. Please enable them in your browser settings.</p>
+    </noscript>
+  </body>
+</html>

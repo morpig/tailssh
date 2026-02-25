@@ -1,0 +1,18 @@
+{
+  "name": "tailssh",
+  "version": "1.0.0",
+  "description": "Browser-based SSH terminal via Tailscale tsconnect WASM, served on Cloudflare Workers",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.68.1"
+  },
+  "dependencies": {
+    "@tailscale/connect": "1.39.98-t02582083d-gf31108a29"
+  }
+}

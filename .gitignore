@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+
+# Build outputs (vendored from node_modules by build.js)
+public/pkg.js
+public/pkg.css
+public/main.wasm
+
+# Local dev secrets — never commit
+.dev.vars
