@@ -235,6 +235,13 @@ html, body {
 
 .picker-header {
   margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.picker-header-text {
+  flex: 1;
 }
 
 .picker-header h1 {
@@ -248,6 +255,22 @@ html, body {
   color: var(--muted);
   font-size: 13px;
 }
+
+.picker-refresh-btn {
+  flex-shrink: 0;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+.picker-refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
 
 .device-grid {
   display: grid;

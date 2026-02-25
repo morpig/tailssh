@@ -44,6 +44,26 @@ let activeTabId = null;
 /** @type {object|null} — set once Tailscale is Running */
 let globalIpn = null;
 
+// ─── Device list cache ────────────────────────────────────────────────────────
+// Cached for the lifetime of the page; bust with forceRefreshDevices().
+/** @type {Array|null} */
+let deviceCache = null;
+
+function forceRefreshDevices() {
+  deviceCache = null;
+}
+
+async function fetchDevices() {
+  if (deviceCache) return deviceCache;
+  const resp = await fetch("/api/devices");
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({}));
+    throw new Error(body.error || `HTTP ${resp.status}`);
+  }
+  deviceCache = await resp.json();
+  return deviceCache;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function setStatus(state) {
@@ -309,6 +329,8 @@ function clearAllTabs() {
   }
   tabs.length = 0;
   activeTabId = null;
+  // Stale device data shouldn't survive a logout/reconnect cycle
+  forceRefreshDevices();
 }
 
 // ─── Drag-and-drop reorder ───────────────────────────────────────────────────
@@ -374,13 +396,28 @@ async function loadPicker(tab, ipn) {
 
   const pickerHeader = document.createElement("div");
   pickerHeader.className = "picker-header";
+
+  const headerText = document.createElement("div");
+  headerText.className = "picker-header-text";
   const h1 = document.createElement("h1");
   h1.textContent = "Choose a machine";
   const subtitle = document.createElement("p");
   subtitle.className = "picker-subtitle";
   subtitle.textContent = "Select a machine from your tailnet to open an SSH session.";
-  pickerHeader.appendChild(h1);
-  pickerHeader.appendChild(subtitle);
+  headerText.appendChild(h1);
+  headerText.appendChild(subtitle);
+
+  const refreshBtn = document.createElement("button");
+  refreshBtn.className = "picker-refresh-btn";
+  refreshBtn.title = "Refresh device list";
+  refreshBtn.textContent = "↻ Refresh";
+  refreshBtn.addEventListener("click", () => {
+    forceRefreshDevices();
+    loadPicker(tab, ipn).catch(err => console.error("[loadPicker]", err));
+  });
+
+  pickerHeader.appendChild(headerText);
+  pickerHeader.appendChild(refreshBtn);
 
   const searchWrap = document.createElement("div");
   searchWrap.className = "picker-search-wrap";
@@ -400,7 +437,7 @@ async function loadPicker(tab, ipn) {
   grid.className = "device-grid";
   const loadingMsg = document.createElement("p");
   loadingMsg.style.cssText = "color:var(--muted);font-size:13px";
-  loadingMsg.textContent = "Loading devices…";
+  loadingMsg.textContent = deviceCache ? "Loading devices…" : "Fetching devices…";
   grid.appendChild(loadingMsg);
 
   const errorEl = document.createElement("div");
@@ -416,12 +453,7 @@ async function loadPicker(tab, ipn) {
 
   let devices;
   try {
-    const resp = await fetch("/api/devices");
-    if (!resp.ok) {
-      const body = await resp.json().catch(() => ({}));
-      throw new Error(body.error || `HTTP ${resp.status}`);
-    }
-    devices = await resp.json();
+    devices = await fetchDevices();
   } catch (err) {
     grid.innerHTML = "";
     errorEl.textContent = `Could not load devices: ${err.message}`;
