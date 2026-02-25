@@ -114,9 +114,7 @@ html, body {
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: stretch;
-  /* z-index must be below header (10) but above pane-host (1) */
   z-index: 9;
-  /* overflow visible so the active-tab inset shadow isn't clipped */
   overflow: visible;
 }
 
@@ -194,6 +192,7 @@ html, body {
   flex-shrink: 0;
   width: var(--tabbar-h);
   border: none;
+  border-right: 1px solid var(--border);
   background: transparent;
   color: var(--muted);
   font-size: 20px;
@@ -202,7 +201,6 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-left: 1px solid var(--border);
   transition: color 0.1s, background 0.1s;
 }
 #new-tab-btn:hover { color: var(--text); background: var(--surface); }

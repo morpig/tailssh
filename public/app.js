@@ -245,7 +245,7 @@ function createTab(ipn) {
   tabEl.addEventListener("drop",      onDrop);
   tabEl.addEventListener("dragend",   onDragEnd);
 
-  tabList.appendChild(tabEl);
+  tabList.insertBefore(tabEl, newTabBtn);
 
   // ── pane ──
   const paneEl = document.createElement("div");
